@@ -1,0 +1,10 @@
+body {
+    background-color: #f0f8ff; /* สีพื้นหลังฟ้าอ่อน */
+    text-align: center; /* จัดข้อความให้อยู่กึ่งกลาง */
+    font-family: sans-serif; /* เปลี่ยนฟอนต์ให้ดูทันสมัยขึ้น */
+    margin-top: 50px;
+}
+
+h1 {
+    color: #000080; /* สีตัวหนังสือหัวข้อ */
+}
