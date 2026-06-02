@@ -1,17 +1,404 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First Website</title>
+    <title>CAR/PAR Dashboard</title>
+    <!-- เรียกใช้ Tailwind CSS -->
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <!-- เรียกใช้ฟอนต์ภาษาไทย -->
+    <link href="[https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+    
+    <!-- เรียกใช้ Chart.js สำหรับวาดกราฟแท่ง -->
+    <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
+    <!-- เรียกใช้ Plotly.js สำหรับวาดกราฟ Sunburst -->
+    <script src="[https://cdn.plot.ly/plotly-2.27.0.min.js](https://cdn.plot.ly/plotly-2.27.0.min.js)"></script>
+    
+    <!-- ลิงก์ไฟล์ CSS ภายนอกที่แยกไว้ -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <h1>สวัสดีชาวโลกกกกกกกกกกกกกกกก!</h1>
-    <p>นี่คือเว็บไซต์แรกของฉัน</p>
-    
-    <button id="myButton">คลิกที่นี่สิ!</button>
+<body class="text-gray-800 antialiased p-4 md:p-6 min-h-screen">
 
-    <script src="script.js"></script>
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-900">ตัวอย่างการแสดงผลสถานะ CAR/PAR 2569 นับแค่ตัวที่ได้รับตั้งแต่ พ.ค.2569 เป็นต้นไป</h1>
+                <p class="text-gray-500 text-sm mt-1" id="lastUpdateText">อัปเดตข้อมูลล่าสุด: กำลังโหลด...</p>
+            </div>
+        </div>
+
+        <!-- แท็บนำทาง (Tabs Navigation) -->
+        <div class="border-b border-gray-200 mb-6 overflow-x-auto">
+            <nav class="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
+                <button onclick="switchTab('mainView')" id="tab-mainView" class="border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-1 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    ตารางข้อมูลหลัก
+                </button>
+                
+                <button onclick="switchTab('urgentView')" id="tab-urgentView" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-1 mb-1 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ที่ยังไม่ตอบกลับ
+                </button>
+
+                <button onclick="switchTab('closingView')" id="tab-closingView" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-1 mb-1 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ที่ใกล้กำหนดการแก้ไข
+                </button>
+
+                <button onclick="switchTab('scoreView')" id="tab-scoreView" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-1 mb-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                    เช็คคะแนนประสิทธิภาพ (KPI)
+                </button>
+
+                <button onclick="switchTab('pivotView')" id="tab-pivotView" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-1 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    ดูสถิติจำนวนข้อ
+                </button>
+            </nav>
+        </div>
+
+        <!-- ==================== หน้าที่ 1: ตารางข้อมูลหลัก (Main View) ==================== -->
+        <div id="mainView" class="block">
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
+                <div class="w-full">
+                    <h2 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wider">ตัวกรองข้อมูลหลัก (Main Filters)</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ค้นหา เลขที่ CAR/PAR</label>
+                            <input type="text" id="search-carpar" oninput="applyFilters()" placeholder="พิมพ์เลขที่..." class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white">
+                        </div>
+                        <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="filtersContainer">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap h-[42px]">
+                    ล้างตัวกรอง
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 relative">
+                <div id="loading" class="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center min-h-[300px]">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-3"></div>
+                    <p class="text-indigo-600 font-medium">กำลังโหลดข้อมูล...</p>
+                </div>
+
+                <div id="noData" class="hidden absolute inset-0 bg-white z-10 flex flex-col items-center justify-center min-h-[300px]">
+                    <p class="text-gray-500 font-medium text-lg">ไม่พบข้อมูลที่ตรงกับตัวกรอง</p>
+                </div>
+
+                <div class="overflow-x-auto table-container" style="max-height: 60vh;">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-indigo-50 sticky top-0 z-0">
+                            <tr id="tableHead" class="text-left text-xs font-semibold text-indigo-900 uppercase tracking-wider"></tr>
+                        </thead>
+                        <tbody id="tableBody" class="bg-white divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 text-sm text-gray-500" id="recordCount">
+                    แสดงข้อมูล 0 รายการ
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== หน้าที่ 2: งานเร่งด่วนตอบกลับ (Urgent View) ==================== -->
+        <div id="urgentView" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-end gap-4 border-l-4 border-rose-500">
+                <div class="w-full">
+                    <h2 class="text-sm font-semibold text-rose-700 mb-4 uppercase tracking-wider flex items-center">
+                        ตัวกรองข้อมูล (เฉพาะรายการที่ยังไม่ตอบกลับ)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Department)</label>
+                            <select id="urgent-filter-dept" onchange="renderUrgentTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Sub-Department)</label>
+                            <select id="urgent-filter-subdept" onchange="renderUrgentTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="resetUrgentFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap h-[42px]">
+                    ล้างตัวกรอง
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 relative">
+                <div id="urgentNoData" class="hidden absolute inset-0 bg-white z-10 flex flex-col items-center justify-center min-h-[300px]">
+                    <div class="bg-green-50 text-green-600 rounded-full p-4 mb-3">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <p class="text-gray-600 font-medium text-lg">ยอดเยี่ยม! ไม่มีรายการตกค้างตามเงื่อนไขที่ค้นหา</p>
+                </div>
+
+                <div class="overflow-x-auto table-container" style="max-height: 60vh;">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-rose-50 sticky top-0 z-0">
+                            <tr class="text-left text-xs font-semibold text-rose-900 uppercase tracking-wider">
+                                <th class="px-6 py-4 border-b border-rose-200">เลขที่ CAR/PAR</th>
+                                <th class="px-6 py-4 border-b border-rose-200">Department</th>
+                                <th class="px-6 py-4 border-b border-rose-200">Sub-Department</th>
+                                <th class="px-6 py-4 border-b border-rose-200">ประเภท CAR/PAR</th>
+                                <th class="px-6 py-4 border-b border-rose-200">วันที่รับ</th>
+                                <th class="px-6 py-4 border-b border-rose-200">กำหนดตอบกลับ</th>
+                                <th class="px-6 py-4 border-b border-rose-200 text-center">เวลาที่เหลือ (วัน)</th>
+                                <th class="px-6 py-4 border-b border-rose-200">สถานะ ตอบกลับ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="urgentTableBody" class="bg-white divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 text-sm text-gray-500" id="urgentRecordCount">
+                    แสดงข้อมูล 0 รายการ
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== หน้าที่ 3: งานใกล้กำหนดปิด (Closing View) ==================== -->
+        <div id="closingView" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-end gap-4 border-l-4 border-amber-500">
+                <div class="w-full">
+                    <h2 class="text-sm font-semibold text-amber-700 mb-4 uppercase tracking-wider flex items-center">
+                        ตัวกรองข้อมูล (เฉพาะรายการที่ยังไม่ยื่นปิด CAR/PAR)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Department)</label>
+                            <select id="closing-filter-dept" onchange="renderClosingTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Sub-Department)</label>
+                            <select id="closing-filter-subdept" onchange="renderClosingTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="resetClosingFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap h-[42px]">
+                    ล้างตัวกรอง
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 relative">
+                <div id="closingNoData" class="hidden absolute inset-0 bg-white z-10 flex flex-col items-center justify-center min-h-[300px]">
+                    <div class="bg-green-50 text-green-600 rounded-full p-4 mb-3">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <p class="text-gray-600 font-medium text-lg">ยอดเยี่ยม! ไม่มีรายการตกค้างตามเงื่อนไขที่ค้นหา</p>
+                </div>
+
+                <div class="overflow-x-auto table-container" style="max-height: 60vh;">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-amber-50 sticky top-0 z-0">
+                            <tr class="text-left text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                                <th class="px-6 py-4 border-b border-amber-200">เลขที่ CAR/PAR</th>
+                                <th class="px-6 py-4 border-b border-amber-200">Department</th>
+                                <th class="px-6 py-4 border-b border-amber-200">Sub-Department</th>
+                                <th class="px-6 py-4 border-b border-amber-200">วันที่คาดว่าจะเสร็จ</th>
+                                <th class="px-6 py-4 border-b border-amber-200">วันที่ยื่นยืด due</th>
+                                <th class="px-6 py-4 border-b border-amber-200">วันที่คาดว่าจะเสร็จใหม่</th>
+                                <th class="px-6 py-4 border-b border-amber-200 text-center">เวลาที่เหลือ (วัน)</th>
+                                <th class="px-6 py-4 border-b border-amber-200">สถานะ ยื่นปิด</th>
+                            </tr>
+                        </thead>
+                        <tbody id="closingTableBody" class="bg-white divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 text-sm text-gray-500" id="closingRecordCount">
+                    แสดงข้อมูล 0 รายการ
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== หน้าที่ 4: ตรวจเช็คคะแนนประสิทธิภาพ (Score View) ==================== -->
+        <div id="scoreView" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-end gap-4 border-l-4 border-blue-500">
+                <div class="w-full">
+                    <h2 class="text-sm font-semibold text-blue-700 mb-4 uppercase tracking-wider flex items-center">
+                        ตัวกรองข้อมูล (ตรวจเช็คคะแนนประสิทธิภาพ)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Department)</label>
+                            <select id="score-filter-dept" onchange="renderScoreTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Sub-Department)</label>
+                            <select id="score-filter-subdept" onchange="renderScoreTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">%คะแนน การปิด CAR อย่างมีประสิทธิภาพ</label>
+                            <select id="score-filter-score" onchange="renderScoreTable()" class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white cursor-pointer">
+                                <option value="all">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="resetScoreFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap h-[42px]">
+                    ล้างตัวกรอง
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 relative">
+                <div id="scoreNoData" class="hidden absolute inset-0 bg-white z-10 flex flex-col items-center justify-center min-h-[300px]">
+                    <p class="text-gray-500 font-medium text-lg">ไม่พบข้อมูลที่ตรงกับตัวกรอง</p>
+                </div>
+
+                <div class="overflow-x-auto table-container" style="max-height: 60vh;">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-blue-50 sticky top-0 z-0">
+                            <tr class="text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                <th class="px-6 py-4 border-b border-blue-200">เลขที่ CAR/PAR</th>
+                                <th class="px-6 py-4 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors select-none group" onclick="toggleScoreSort()" title="คลิกเพื่อเรียงลำดับข้อมูลคะแนน">
+                                    <div class="flex items-center gap-1">
+                                        %คะแนน
+                                        <span id="scoreSortIcon" class="text-blue-400 group-hover:text-blue-600 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 border-b border-blue-200">เรื่องซ้ำ/ไม่ซ้ำกับปี 2568</th>
+                                <th class="px-6 py-4 border-b border-blue-200">สถานะ ตอบกลับเลท/ไม่เลท</th>
+                                <th class="px-6 py-4 border-b border-blue-200">สถานะยื่นเอกสารปิด CAR/PAR</th>
+                                <th class="px-6 py-4 border-b border-blue-200">สถานะ แก้ไขเลท/ไม่เลทจากที่กำหนดเสร็จ</th>
+                                <th class="px-6 py-4 border-b border-blue-200">สถานะ แก้ไขเลท/ไม่เลทจากที่กำหนดเสร็จของยื่นยืด due ใหม่</th>
+                                <th class="px-6 py-4 border-b border-blue-200">หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreTableBody" class="bg-white divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 text-sm text-gray-500 flex justify-between items-center" id="scoreRecordCount">
+                    แสดงข้อมูล 0 รายการ
+                </div>
+            </div>
+            
+            <div class="mt-6 mb-4 px-2">
+                <p class="text-sm text-gray-600 flex items-start">
+                    <svg class="w-5 h-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>
+                        *หากคะแนนในตารางนี้ไม่ตรงกับที่หน่วยงานคิดเอง โปรดติดต่อ QS เพื่อตรวจสอบข้อมูล สามารถดูเงื่อนไขการให้คะแนนได้ที่ลิ้งก์ 
+                        <a href="[https://lookerstudio.google.com/reporting/d22273c0-5f2e-4beb-baa8-2d717db17984](https://lookerstudio.google.com/reporting/d22273c0-5f2e-4beb-baa8-2d717db17984)" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium transition-colors">คลิกที่นี่</a>
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- ==================== หน้าที่ 5: ดูสถิติ Pivot Table และกราฟ ==================== -->
+        <div id="pivotView" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+                    <div class="w-full">
+                        <h2 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wider">ตัวกรองสถิติ (Pivot Filters)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Department)</label>
+                                <select id="pivot-filter-dept" onchange="renderPivotTable()" class="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white cursor-pointer">
+                                    <option value="all">-- ทั้งหมด --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">ผู้รับ CAR/PAR (Sub-Department)</label>
+                                <select id="pivot-filter-subdept" onchange="renderPivotTable()" class="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white cursor-pointer">
+                                    <option value="all">-- ทั้งหมด --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางที่ 1: แสดงผลตาราง Pivot -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 relative p-4 mb-6">
+                <div id="pivotNoData" class="hidden absolute inset-0 bg-white/90 z-10 flex flex-col items-center justify-center min-h-[200px]">
+                    <p class="text-gray-500 font-medium text-lg">ไม่พบข้อมูลสำหรับสร้างสถิติ</p>
+                </div>
+                
+                <h3 class="font-bold text-lg text-gray-800 mb-4 text-center">รายงานสรุปจำนวนข้อ CAR/PAR ตามสถานะตอบกลับ</h3>
+                <div class="overflow-x-auto table-container">
+                    <table class="min-w-full text-sm pivot-table" id="pivotTableContainer">
+                        <!-- โครงสร้าง Pivot จะถูกวาดที่นี่ -->
+                    </table>
+                </div>
+            </div>
+
+            <!-- ส่วนของ กราฟแท่งสะสม, Sunburst Chart และ Stacked Bar Chart -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 relative p-4 lg:p-6">
+                
+                <!-- ซ่อนตารางสะสมตาม Requirement เดิม -->
+                <div class="hidden overflow-x-auto table-container max-w-3xl mx-auto mb-8">
+                    <table class="min-w-full text-sm pivot-table" id="cumulativeTableContainer">
+                        <thead>
+                            <tr class="bg-indigo-50">
+                                <th class="w-1/3 py-3">เดือน</th>
+                                <th class="w-1/3 py-3 text-indigo-800">จำนวน CAR/PAR สะสม (ยังไม่ปิด + ปิดแล้ว)</th>
+                                <th class="w-1/3 py-3 text-emerald-800">จำนวน CAR/PAR ที่ปิดแล้วสะสม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cumulativeTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- กราฟแท่งสะสม -->
+                <div class="w-full max-w-4xl mx-auto">
+                    <h3 class="font-bold text-md text-gray-600 mb-2 text-center">กราฟแสดงจำนวน CAR/PAR สะสม</h3>
+                    <div class="flex justify-center mb-4">
+                        <span id="cumulativeFilterStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            ฝ่าย: โหลดข้อมูล... | แผนก: โหลดข้อมูล...
+                        </span>
+                    </div>
+                    <div class="relative w-full h-[350px] md:h-[450px]">
+                        <canvas id="cumulativeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- กราฟ Sunburst แหล่งที่มา -->
+                <div class="mt-12 pt-8 border-t border-gray-100 w-full max-w-5xl mx-auto">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2 text-center">สัดส่วน CAR/PAR แยกตามแหล่งที่มา ประเภท และสถานะปิด</h3>
+                    <p class="text-sm text-gray-500 text-center mb-2">วงในสุด = แหล่งที่มา (I, E, C, O) > วงกลาง = ประเภท > วงนอกสุด = โชว์เฉพาะ "ยื่นปิดแล้ว" (คลิกที่วงเพื่อเจาะดูข้อมูล)</p>
+                    <div class="flex justify-center mb-4">
+                        <span id="sunburstFilterStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            ฝ่าย: โหลดข้อมูล... | แผนก: โหลดข้อมูล...
+                        </span>
+                    </div>
+                    <div id="sunburstChart" class="w-full h-[400px] md:h-[600px] flex justify-center"></div>
+                </div>
+
+                <!-- กราฟจำนวนข้อ แยกตามหน่วยงาน (Stacked Bar) -->
+                <div class="mt-12 pt-8 border-t border-gray-100 w-full max-w-5xl mx-auto">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h3 class="font-bold text-lg text-gray-800 text-center flex-grow">จำนวนข้อ แยกตามหน่วยงาน</h3>
+                        <button id="btnBackDept" onclick="goBackDeptView()" class="hidden mt-3 sm:mt-0 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-indigo-200">
+                            &larr; ย้อนกลับไปดูทุกฝ่าย
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 text-center mb-4" id="deptChartSubTitle">แบ่งตามสถานะยื่นเอกสารปิด CAR/PAR (สามารถคลิกที่แท่งกราฟเพื่อดูแผนกย่อย)</p>
+                    <div class="relative w-full h-[400px] md:h-[500px]">
+                        <canvas id="deptStackedChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ลิงก์ไฟล์ JavaScript ภายนอกที่แยกไว้ -->
+    <script src="script.js" defer></script>
 </body>
 </html>
