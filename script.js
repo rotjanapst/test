@@ -1,7 +1,7 @@
 // script.js
 
 // ⚠️ ใส่ Web App URL ที่คุณ Deploy ได้จาก GAS ลงในบรรทัดนี้
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw0lWE9R321opRFvsQKTniiZZAIRQHcBsYuCnPjNLk90AOKklYsl0cZfy4O5NogPYC3/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzTVYgPI9pUpZBTg49gNtDDX-s2ry6Nc4KJJbThiImj9OKFYvnqGoLf1OC5EvROLi9B/exec';
 
 // ตัวแปรเก็บ State หลัก
 let allData = [];
@@ -99,30 +99,43 @@ function parseThaiDate(dateStr) {
     return new Date(year, month, day);
 }
 
-// **ฟังก์ชันนี้ถูกเปลี่ยนมาใช้ fetch() สำหรับรันบน GitHub Pages**
-async function fetchData() {
+// **เปลี่ยนมาใช้วิธี JSONP เพื่อทะลุบล็อก CORS ของเบราว์เซอร์ 100%**
+function fetchData() {
     showLoading(true);
-    try {
-        // เพิ่ม { redirect: 'follow' } เพื่อรองรับการเปลี่ยนเส้นทางของ Google
-        const response = await fetch(GAS_API_URL, {
-            method: 'GET',
-            redirect: 'follow' 
-        });
-        
-        // รับค่าเป็น Text ก่อน แล้วค่อยแปลงเป็น JSON เพื่อป้องกัน Error จาก GAS
-        const responseText = await response.text();
-        const result = JSON.parse(responseText);
-        
+    
+    // สร้างตัวแปร Callback ชั่วคราว
+    const callbackName = 'gasCallback_' + Math.round(100000 * Math.random());
+    
+    // สร้างฟังก์ชันมารอรับข้อมูลที่ส่งกลับมาจาก Google
+    window[callbackName] = function(result) {
+        // เมื่อได้ข้อมูลแล้ว ลบสคริปต์ที่สร้างขึ้นเพื่อไม่ให้รก
+        delete window[callbackName];
+        const scriptEl = document.getElementById(callbackName);
+        if (scriptEl) scriptEl.remove();
+
+        // นำข้อมูลไปทำงานต่อ
         if (result.error) {
-            onDataError(result.error);
+            onDataError("Google Apps Script Error: " + result.error);
             return;
         }
         
         onDataLoaded(result);
-    } catch (error) {
-        onDataError("เกิดปัญหา CORS หรือไม่สามารถเชื่อมต่อฐานข้อมูลได้ (โปรดเช็คการ Deploy GAS)");
-        console.error("Fetch Details:", error);
-    }
+    };
+    // สร้างแท็ก <script> ยิงไปหา GAS API พร้อมส่งชื่อ Callback ไปด้วย
+    const script = document.createElement('script');
+    script.id = callbackName;
+    // เติม ?callback= ชื่อฟังก์ชันต่อท้าย URL
+    script.src = GAS_API_URL + (GAS_API_URL.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+    
+    // จัดการกรณีที่ยิงไปแล้วเชื่อมต่อไม่ได้ (เช่น เน็ตหลุด หรือ URL ผิด)
+    script.onerror = function() {
+        delete window[callbackName];
+        script.remove();
+        onDataError("ไม่สามารถดึงข้อมูลได้: URL ผิดปกติ หรือ อินเทอร์เน็ตมีปัญหา");
+    };
+
+    // ฝังลงในหน้าเว็บเพื่อให้เบราว์เซอร์ไปดึงข้อมูลมา
+    document.body.appendChild(script);
 }
 
 function onDataLoaded(response) {
