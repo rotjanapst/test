@@ -1,10 +1,16 @@
-body {
-    background-color: #f0f8ff; /* สีพื้นหลังฟ้าอ่อน */
-    text-align: center; /* จัดข้อความให้อยู่กึ่งกลาง */
-    font-family: sans-serif; /* เปลี่ยนฟอนต์ให้ดูทันสมัยขึ้น */
-    margin-top: 50px;
-}
+/* style.css */
+body { font-family: 'Noto Sans Thai', sans-serif; background-color: #f3f4f6; }
+/* ปรับแต่ง Scrollbar สำหรับตาราง */
+.table-container::-webkit-scrollbar { height: 8px; }
+.table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px;}
+.table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px;}
+.table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-h1 {
-    color: #000080; /* สีตัวหนังสือหัวข้อ */
-}
+/* สไตล์สำหรับตารางทั่วไป */
+th { white-space: nowrap; }
+td { white-space: nowrap; }
+
+/* สไตล์เสริมสำหรับ Pivot Table */
+.pivot-table th, .pivot-table td { border: 1px solid #e5e7eb; padding: 0.75rem 1rem; }
+.pivot-table thead th { background-color: #eef2ff; color: #312e81; font-weight: 600; text-align: center; }
+.pivot-table tbody td { color: #4b5563; }
